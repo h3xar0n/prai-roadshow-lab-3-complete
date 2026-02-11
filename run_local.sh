@@ -52,6 +52,11 @@ if [[ -n "$TEMPLATE_NAME" && "$TEMPLATE_NAME" != *"$GOOGLE_CLOUD_PROJECT"* ]]; t
     echo "You might need to re-run ./deploy.sh to update the .env file with the correct template for this project."
     echo "Or update .env manually."
 fi
+# Set default TEMPLATE_NAME if not set
+if [[ -z "$TEMPLATE_NAME" ]]; then
+    TEMPLATE_NAME="projects/$GOOGLE_CLOUD_PROJECT/locations/$GOOGLE_CLOUD_LOCATION/templates/course-creator-security-policy"
+    echo "TEMPLATE_NAME not set in .env. Using default: $TEMPLATE_NAME"
+fi
 export GOOGLE_GENAI_USE_VERTEXAI="True" # Use Gemini API locally
 export GOOGLE_API_KEY="<your-key-here>" # Use if not using Vertex AI
 
