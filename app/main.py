@@ -159,7 +159,6 @@ class SimpleChatRequest(BaseModel):
 @app.post("/api/chat_stream")
 async def chat_stream(request: SimpleChatRequest):
     """Streaming chat endpoint."""
-    """Streaming chat endpoint."""
     # Model Armor Safety Check
     try:
         user_prompt_data = modelarmor_v1.DataItem(text=request.message)
