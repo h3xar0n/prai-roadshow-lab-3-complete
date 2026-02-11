@@ -52,7 +52,7 @@ echo "Exporting Terraform output to .env..."
 TEMPLATE_NAME=$(terraform -chdir=terraform output -raw model_armor_template_name)
 touch .env
 if grep -q "TEMPLATE_NAME=" .env; then
-  sed -i "s/TEMPLATE_NAME=.*/TEMPLATE_NAME=${TEMPLATE_NAME}/" .env
+  sed -i "s|TEMPLATE_NAME=.*|TEMPLATE_NAME=${TEMPLATE_NAME}|" .env
 else
   echo "TEMPLATE_NAME=${TEMPLATE_NAME}" >> .env
 fi
