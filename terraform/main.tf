@@ -121,4 +121,15 @@ resource "google_model_armor_template" "course_creator_security_policy" {
   }
 }
 
+resource "google_artifact_registry_repository" "cloud_run_source_deploy" {
+  location      = var.region
+  repository_id = "cloud-run-source-deploy"
+  description   = "Repository for Cloud Run Source Deploy"
+  format        = "DOCKER"
+
+  labels = {
+    "dev-tutorial" = "prod-ready-3"
+  }
+}
+
 
