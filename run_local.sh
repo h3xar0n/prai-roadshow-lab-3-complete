@@ -8,6 +8,17 @@ else
     echo "lsof not found, skipping port cleanup. Please ensure ports 8000-8004 are free."
 fi
 
+# Ensure uv is in PATH
+if ! command -v uv >/dev/null 2>&1; then
+    if [ -f "$HOME/.local/bin/env" ]; then
+        source "$HOME/.local/bin/env"
+    fi
+fi
+if ! command -v uv >/dev/null 2>&1; then
+    echo "Error: 'uv' is not installed or not in PATH. Please install it with: curl -LsSf https://astral.sh/uv/install.sh | sh"
+    exit 1
+fi
+
 # Load variables from .env if it exists
 if [ -f .env ]; then
     echo "Loading environment variables from .env..."
@@ -29,6 +40,7 @@ export GOOGLE_CLOUD_LOCATION="us-central1"
 export GOOGLE_GENAI_USE_VERTEXAI="True" # Use Gemini API locally
 export GOOGLE_API_KEY="<your-key-here>" # Use if not using Vertex AI
 
+echo "Using Model Armor Template: ${TEMPLATE_NAME}"
 echo "Starting Researcher Agent on port 8001..."
 pushd agents/researcher
 uv run adk_app.py --host 0.0.0.0 --port 8001 --a2a . &
