@@ -25,6 +25,9 @@ if [ -f .env ]; then
     set -a
     source .env
     set +a
+else
+    echo "Error: .env file not found. Please run ./deploy.sh first to generate it."
+    exit 1
 fi
 
 # Set common environment variables for local development
