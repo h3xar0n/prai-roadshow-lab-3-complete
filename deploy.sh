@@ -9,9 +9,7 @@ if [ -f ".env" ]; then
   source .env
 fi
 
-if [[ "${TEMPLATE_NAME}" == "" ]]; then
-  echo "WARNING: TEMPLATE_NAME is not set. The application relies on this for Model Armor configuration."
-fi
+
 
 if [[ "${GOOGLE_CLOUD_PROJECT}" == "" ]]; then
   GOOGLE_CLOUD_PROJECT=$(gcloud config get-value project -q)
@@ -37,8 +35,34 @@ fi
 echo "Using project ${GOOGLE_CLOUD_PROJECT}."
 echo "Using compute region ${REGION}."
 
-# Optional suffix for service names (e.g. set to "-beta" for parallel version)
-# You can set this in your .env or as an environment variable.
+# Terraform Deployment
+echo "Initializing Terraform..."
+terraform -chdir=terraform init
+
+echo "Importing existing resources if needed..."
+bash terraform/import.sh "${GOOGLE_CLOUD_PROJECT}" "${REGION}"
+
+echo "Applying Terraform configuration..."
+terraform -chdir=terraform apply -auto-approve \
+  -var="project=${GOOGLE_CLOUD_PROJECT}" \
+  -var="region=${REGION}" \
+  -var="billing_project=${GOOGLE_CLOUD_PROJECT}"
+
+echo "Exporting Terraform output to .env..."
+TEMPLATE_NAME=$(terraform -chdir=terraform output -raw model_armor_template_name)
+touch .env
+if grep -q "TEMPLATE_NAME=" .env; then
+  sed -i "s/TEMPLATE_NAME=.*/TEMPLATE_NAME=${TEMPLATE_NAME}/" .env
+else
+  echo "TEMPLATE_NAME=${TEMPLATE_NAME}" >> .env
+fi
+
+if [[ "${TEMPLATE_NAME}" == "" ]]; then
+  echo "ERROR: Failed to get TEMPLATE_NAME from Terraform output."
+  exit 1
+fi
+
+
 if [[ "${SERVICE_SUFFIX}" == "" ]]; then
   SERVICE_SUFFIX=""
 fi
