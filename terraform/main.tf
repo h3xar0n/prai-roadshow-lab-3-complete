@@ -113,7 +113,5 @@ resource "google_model_armor_template" "course_creator_security_policy" {
     # Search result said 'enabled'. I will try 'enabled'.
     enabled = true
   }
-
-  # log_config omitted as it may not be supported in this resource version or struct.
 }
 
