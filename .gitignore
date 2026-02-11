@@ -211,3 +211,4 @@ desktop.ini
 Thumbs.db
 deploy.ps1
 run_local.ps1
+terraform_bin/
