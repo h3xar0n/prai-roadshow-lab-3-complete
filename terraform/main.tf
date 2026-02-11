@@ -119,6 +119,10 @@ resource "google_model_armor_template" "course_creator_security_policy" {
       filter_enforcement = "ENABLED"
     }
   }
+
+  template_metadata {
+    ignore_errors = false
+  }
 }
 
 resource "google_artifact_registry_repository" "cloud_run_source_deploy" {
