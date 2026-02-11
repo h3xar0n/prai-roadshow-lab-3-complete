@@ -78,40 +78,38 @@ resource "google_model_armor_template" "course_creator_security_policy" {
     "dev-tutorial" = "prod-ready-3"
   }
 
-  # Prompt Injection and Jailbreak
-  pi_and_jailbreak_filter_config {
-    filter_settings {
-      filter_type      = "PROMPT_INJECTION"
-      confidence_level = "LOW_AND_ABOVE"
+  filter_config {
+    # Prompt Injection
+    prompt_injection_filter_settings {
+      filter_enforcement = "ENABLED"
     }
-  }
 
-  # Sensitive Data Protection
-  sdp_settings {
-    advanced_config {
+    # Sensitive Data Protection
+    sdp_settings {
+      # basic_config {
+      #   filter_enforcement = "ENABLED"
+      # }
       inspect_template    = google_data_loss_prevention_inspect_template.sensitive_data_inspector.name
       deidentify_template = google_data_loss_prevention_deidentify_template.sensitive_data_redactor.name
     }
-  }
 
-  # RAI Content Filters
-  content_filter_config {
-    filter_settings {
-      label    = "HATE_SPEECH"
-      severity = "MEDIUM_AND_ABOVE"
+    # RAI Content Filters
+    rai_settings {
+      rai_filters {
+        filter_type      = "HATE_SPEECH"
+        confidence_level = "MEDIUM_AND_ABOVE"
+      }
+      rai_filters {
+        filter_type      = "HARASSMENT"
+        confidence_level = "LOW_AND_ABOVE"
+      }
     }
-    filter_settings {
-      label    = "HARASSMENT"
-      severity = "LOW_AND_ABOVE"
-    }
-  }
 
-  # Malicious URL Filter
-  malicious_url_filter_config {
-    # Malicious URL filter enabled
-    # enabled = true # Argument might be 'filter_enforcement' or 'enabled'. 
-    # Search result said 'enabled'. I will try 'enabled'.
-    enabled = true
+    # Malicious URI Filter
+    malicious_uri_filter_settings {
+      filter_enforcement = "ENABLED"
+    }
   }
 }
+
 
