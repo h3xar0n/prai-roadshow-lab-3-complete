@@ -121,7 +121,7 @@ resource "google_model_armor_template" "course_creator_security_policy" {
   }
 
   template_metadata {
-    ignore_errors = false
+    log_template_operations = true
   }
 }
 
