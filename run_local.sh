@@ -26,7 +26,7 @@ if [ -f .env ]; then
     source .env
     set +a
 else
-    echo "Error: .env file not found. Please run ./deploy.sh first to generate it."
+    echo "Error: .env file not found. Please go back to the previous steps and be sure to add the project and template information."
     exit 1
 fi
 
