@@ -12,6 +12,9 @@ if [[ -z "$PROJECT" || -z "$REGION" ]]; then
   exit 1
 fi
 
+# Switch to the script's directory so terraform commands work
+cd "$(dirname "$0")"
+
 echo "Checking for existing resources to import..."
 
 # Function to attempt import
