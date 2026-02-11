@@ -96,8 +96,8 @@ resource "google_model_armor_template" "course_creator_security_policy" {
       #   filter_enforcement = "ENABLED"
       # }
       advanced_config {
-        inspect_template    = google_data_loss_prevention_inspect_template.sensitive_data_inspector.name
-        deidentify_template = google_data_loss_prevention_deidentify_template.sensitive_data_redactor.name
+        inspect_template    = google_data_loss_prevention_inspect_template.sensitive_data_inspector.id
+        deidentify_template = google_data_loss_prevention_deidentify_template.sensitive_data_redactor.id
       }
     }
 
