@@ -35,8 +35,23 @@ else
     GCLOUD_CMD="gcloud"
 fi
 
-export GOOGLE_CLOUD_PROJECT=$($GCLOUD_CMD config get-value project)
+# Always prioritize the ACTIVE gcloud project for local runs
+CURRENT_PROJECT=$($GCLOUD_CMD config get-value project)
+if [[ -n "$CURRENT_PROJECT" && "$CURRENT_PROJECT" != "(unset)" ]]; then
+    export GOOGLE_CLOUD_PROJECT=$CURRENT_PROJECT
+    echo "Using active gcloud project: $GOOGLE_CLOUD_PROJECT"
+else
+    echo "Warning: No active gcloud project found. Using value from .env if available."
+fi
+
 export GOOGLE_CLOUD_LOCATION="us-central1"
+
+# Check if TEMPLATE_NAME belongs to a different project
+if [[ -n "$TEMPLATE_NAME" && "$TEMPLATE_NAME" != *"$GOOGLE_CLOUD_PROJECT"* ]]; then
+    echo "WARNING: TEMPLATE_NAME in .env ($TEMPLATE_NAME) does not match the active project ($GOOGLE_CLOUD_PROJECT)."
+    echo "You might need to re-run ./deploy.sh to update the .env file with the correct template for this project."
+    echo "Or update .env manually."
+fi
 export GOOGLE_GENAI_USE_VERTEXAI="True" # Use Gemini API locally
 export GOOGLE_API_KEY="<your-key-here>" # Use if not using Vertex AI
 
