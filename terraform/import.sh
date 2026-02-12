@@ -54,7 +54,6 @@ try_import "google_data_loss_prevention_deidentify_template.sensitive_data_redac
 # Import Model Armor Template
 try_import "google_model_armor_template.course_creator_security_policy" "projects/${PROJECT}/locations/${REGION}/templates/course-creator-security-policy"
 
-# Import Artifact Registry Repository
-try_import "google_artifact_registry_repository.cloud_run_source_deploy" "projects/${PROJECT}/locations/${REGION}/repositories/cloud-run-source-deploy"
+
 
 echo "Import check complete."
