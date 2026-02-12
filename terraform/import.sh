@@ -54,6 +54,4 @@ try_import "google_data_loss_prevention_deidentify_template.sensitive_data_redac
 # Import Model Armor Template
 try_import "google_model_armor_template.course_creator_security_policy" "projects/${PROJECT}/locations/${REGION}/templates/course-creator-security-policy"
 
-
-
 echo "Import check complete."
