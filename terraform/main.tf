@@ -82,19 +82,10 @@ resource "google_model_armor_template" "course_creator_security_policy" {
     # Prompt Injection
     pi_and_jailbreak_filter_settings {
       filter_enforcement = "ENABLED"
-      # Step 263 says confidence_level is supported.
-      # User originally wanted confidence_level.
-      # I'll add it if I'm confident. 
-      # "confidence_level" = "MEDIUM_AND_ABOVE"
-      # But to be safe and fix the immediate "Unsupported block type" error, I'll stick to what I know works or just the name change first.
-      # Actually, let's add confidence level as it was in original request.
     }
 
     # Sensitive Data Protection
     sdp_settings {
-      # basic_config {
-      #   filter_enforcement = "ENABLED"
-      # }
       advanced_config {
         inspect_template    = google_data_loss_prevention_inspect_template.sensitive_data_inspector.id
         deidentify_template = google_data_loss_prevention_deidentify_template.sensitive_data_redactor.id
@@ -124,16 +115,3 @@ resource "google_model_armor_template" "course_creator_security_policy" {
     log_template_operations = true
   }
 }
-
-resource "google_artifact_registry_repository" "cloud_run_source_deploy" {
-  location      = var.region
-  repository_id = "cloud-run-source-deploy"
-  description   = "Repository for Cloud Run Source Deploy"
-  format        = "DOCKER"
-
-  labels = {
-    "dev-tutorial" = "prod-ready-3"
-  }
-}
-
-

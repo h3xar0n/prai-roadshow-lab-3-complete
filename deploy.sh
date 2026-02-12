@@ -9,7 +9,10 @@ if [ -f ".env" ]; then
   source .env
 fi
 
-
+# Add local terraform binary to path
+if [ -d "${SCRIPT_DIR}/terraform_bin" ]; then
+  export PATH="${SCRIPT_DIR}/terraform_bin:${PATH}"
+fi
 
 if [[ "${GOOGLE_CLOUD_PROJECT}" == "" ]]; then
   GOOGLE_CLOUD_PROJECT=$(gcloud config get-value project -q)
@@ -37,101 +40,101 @@ echo "Using compute region ${REGION}."
 
 # Terraform Deployment
 echo "Initializing Terraform..."
-terraform -chdir=terraform init
+if command -v terraform &> /dev/null; then
+    terraform -chdir=terraform init
 
-echo "Importing existing resources if needed..."
-bash terraform/import.sh "${GOOGLE_CLOUD_PROJECT}" "${REGION}"
+    echo "Importing existing resources if needed..."
+    bash terraform/import.sh "${GOOGLE_CLOUD_PROJECT}" "${REGION}"
 
-echo "Applying Terraform configuration..."
-terraform -chdir=terraform apply -auto-approve \
-  -var="project=${GOOGLE_CLOUD_PROJECT}" \
-  -var="region=${REGION}" \
-  -var="billing_project=${GOOGLE_CLOUD_PROJECT}"
+    echo "Applying Terraform configuration..."
+    terraform -chdir=terraform apply -auto-approve \
+      -var="project=${GOOGLE_CLOUD_PROJECT}" \
+      -var="region=${REGION}" \
+      -var="billing_project=${GOOGLE_CLOUD_PROJECT}"
 
-echo "Exporting Terraform output to .env..."
-TEMPLATE_NAME=$(terraform -chdir=terraform output -raw model_armor_template_name)
-touch .env
-if grep -q "TEMPLATE_NAME=" .env; then
-  sed -i "s|TEMPLATE_NAME=.*|TEMPLATE_NAME=${TEMPLATE_NAME}|" .env
+    echo "Exporting Terraform output to .env..."
+    TEMPLATE_NAME=$(terraform -chdir=terraform output -raw model_armor_template_name)
+    touch .env
+    if grep -q "TEMPLATE_NAME=" .env; then
+      sed -i "s|TEMPLATE_NAME=.*|TEMPLATE_NAME=${TEMPLATE_NAME}|" .env
+    else
+      echo "TEMPLATE_NAME=${TEMPLATE_NAME}" >> .env
+    fi
 else
-  echo "TEMPLATE_NAME=${TEMPLATE_NAME}" >> .env
+    echo "WARNING: terraform not found in PATH. Skipping Terraform deployment steps."
+    # Fallback: check if TEMPLATE_NAME is already in .env
+    if [[ -z "${TEMPLATE_NAME}" ]]; then
+        TEMPLATE_NAME=$(grep TEMPLATE_NAME .env | cut -d '=' -f2)
+    fi
 fi
 
 if [[ "${TEMPLATE_NAME}" == "" ]]; then
-  echo "ERROR: Failed to get TEMPLATE_NAME from Terraform output."
+  echo "ERROR: TEMPLATE_NAME not found. Please ensure Terraform has run or set it in .env manually."
   exit 1
 fi
 
 
 if [[ "${SERVICE_SUFFIX}" == "" ]]; then
-  SERVICE_SUFFIX=""
+  SERVICE_SUFFIX="-prod-ready-3"
 fi
 echo "Using service suffix: '${SERVICE_SUFFIX}'"
 
-# Helper function to build image with correct context
-build_image() {
-  local DOCKERFILE=$1
-  local IMAGE_TAG=$2
-  
-  echo "Building ${IMAGE_TAG} from ${DOCKERFILE}..."
-  cp "${DOCKERFILE}" Dockerfile
-  # Use trap to ensure Dockerfile is removed even if build fails
-  trap "rm -f Dockerfile" EXIT
-  
-  gcloud builds submit --tag "${IMAGE_TAG}" .
-  
-  rm -f Dockerfile
-  trap - EXIT
+# Function to deploy from source with root context
+# Copies Dockerfile to root, deploys, then cleans up
+deploy_service() {
+    local SERVICE_NAME=$1
+    local DOCKERFILE_PATH=$2
+    shift 2
+    local ARGS=("$@")
+
+    echo "Deploying ${SERVICE_NAME}..."
+    cp "${DOCKERFILE_PATH}" Dockerfile
+    # Trap to ensure Dockerfile is removed
+    trap "rm -f Dockerfile" EXIT
+
+    gcloud run deploy "${SERVICE_NAME}" \
+      --source . \
+      "${ARGS[@]}"
+
+    rm -f Dockerfile
+    trap - EXIT
 }
 
-echo "Deploying researcher..."
-RESEARCHER_IMAGE="us-central1-docker.pkg.dev/${GOOGLE_CLOUD_PROJECT}/cloud-run-source-deploy/researcher${SERVICE_SUFFIX}:latest"
-build_image "agents/researcher/Dockerfile" "${RESEARCHER_IMAGE}"
-
-gcloud run deploy "researcher${SERVICE_SUFFIX}" \
-  --image "${RESEARCHER_IMAGE}" \
+# Deploy Researcher
+deploy_service "researcher${SERVICE_SUFFIX}" "agents/researcher/Dockerfile" \
   --project $GOOGLE_CLOUD_PROJECT \
   --region $REGION \
   --labels dev-tutorial=prod-ready-3 \
   --no-allow-unauthenticated \
   --set-env-vars GOOGLE_CLOUD_PROJECT="${GOOGLE_CLOUD_PROJECT}" \
   --set-env-vars GOOGLE_GENAI_USE_VERTEXAI="true"
+
 RESEARCHER_URL=$(gcloud run services describe "researcher${SERVICE_SUFFIX}" --region $REGION --format='value(status.url)')
 
-echo "Deploying content-builder..."
-CONTENT_BUILDER_IMAGE="us-central1-docker.pkg.dev/${GOOGLE_CLOUD_PROJECT}/cloud-run-source-deploy/content-builder${SERVICE_SUFFIX}:latest"
-build_image "agents/content_builder/Dockerfile" "${CONTENT_BUILDER_IMAGE}"
-
-gcloud run deploy "content-builder${SERVICE_SUFFIX}" \
-  --image "${CONTENT_BUILDER_IMAGE}" \
+# Deploy Content Builder
+deploy_service "content-builder${SERVICE_SUFFIX}" "agents/content_builder/Dockerfile" \
   --project $GOOGLE_CLOUD_PROJECT \
   --region $REGION \
   --labels dev-tutorial=prod-ready-3 \
   --no-allow-unauthenticated \
   --set-env-vars GOOGLE_CLOUD_PROJECT="${GOOGLE_CLOUD_PROJECT}" \
   --set-env-vars GOOGLE_GENAI_USE_VERTEXAI="true"
+
 CONTENT_BUILDER_URL=$(gcloud run services describe "content-builder${SERVICE_SUFFIX}" --region $REGION --format='value(status.url)')
 
-echo "Deploying judge..."
-JUDGE_IMAGE="us-central1-docker.pkg.dev/${GOOGLE_CLOUD_PROJECT}/cloud-run-source-deploy/judge${SERVICE_SUFFIX}:latest"
-build_image "agents/judge/Dockerfile" "${JUDGE_IMAGE}"
-
-gcloud run deploy "judge${SERVICE_SUFFIX}" \
-  --image "${JUDGE_IMAGE}" \
+# Deploy Judge
+deploy_service "judge${SERVICE_SUFFIX}" "agents/judge/Dockerfile" \
   --project $GOOGLE_CLOUD_PROJECT \
   --region $REGION \
   --labels dev-tutorial=prod-ready-3 \
   --no-allow-unauthenticated \
   --set-env-vars GOOGLE_CLOUD_PROJECT="${GOOGLE_CLOUD_PROJECT}" \
   --set-env-vars GOOGLE_GENAI_USE_VERTEXAI="true"
+
 JUDGE_URL=$(gcloud run services describe "judge${SERVICE_SUFFIX}" --region $REGION --format='value(status.url)')
 
-echo "Deploying orchestrator..."
-ORCHESTRATOR_IMAGE="us-central1-docker.pkg.dev/${GOOGLE_CLOUD_PROJECT}/cloud-run-source-deploy/orchestrator${SERVICE_SUFFIX}:latest"
-build_image "agents/orchestrator/Dockerfile" "${ORCHESTRATOR_IMAGE}"
-
-gcloud run deploy "orchestrator${SERVICE_SUFFIX}" \
-  --image "${ORCHESTRATOR_IMAGE}" \
+# Deploy Orchestrator
+deploy_service "orchestrator${SERVICE_SUFFIX}" "agents/orchestrator/Dockerfile" \
   --project $GOOGLE_CLOUD_PROJECT \
   --region $REGION \
   --labels dev-tutorial=prod-ready-3 \
@@ -141,14 +144,11 @@ gcloud run deploy "orchestrator${SERVICE_SUFFIX}" \
   --set-env-vars CONTENT_BUILDER_AGENT_CARD_URL=$CONTENT_BUILDER_URL/a2a/agent/.well-known/agent-card.json \
   --set-env-vars GOOGLE_CLOUD_PROJECT="${GOOGLE_CLOUD_PROJECT}" \
   --set-env-vars GOOGLE_GENAI_USE_VERTEXAI="true"
+
 ORCHESTRATOR_URL=$(gcloud run services describe "orchestrator${SERVICE_SUFFIX}" --region $REGION --format='value(status.url)')
 
-echo "Deploying course-creator (frontend)..."
-COURSE_CREATOR_IMAGE="us-central1-docker.pkg.dev/${GOOGLE_CLOUD_PROJECT}/cloud-run-source-deploy/course-creator${SERVICE_SUFFIX}:latest"
-build_image "app/Dockerfile" "${COURSE_CREATOR_IMAGE}"
-
-gcloud run deploy "course-creator${SERVICE_SUFFIX}" \
-  --image "${COURSE_CREATOR_IMAGE}" \
+# Deploy Course Creator (Frontend)
+deploy_service "course-creator${SERVICE_SUFFIX}" "app/Dockerfile" \
   --project $GOOGLE_CLOUD_PROJECT \
   --region $REGION \
   --labels dev-tutorial=prod-ready-3 \
@@ -156,3 +156,5 @@ gcloud run deploy "course-creator${SERVICE_SUFFIX}" \
   --set-env-vars AGENT_SERVER_URL=$ORCHESTRATOR_URL \
   --set-env-vars GOOGLE_CLOUD_PROJECT="${GOOGLE_CLOUD_PROJECT}" \
   --set-env-vars TEMPLATE_NAME="${TEMPLATE_NAME}"
+
+echo "Deployment complete!"
