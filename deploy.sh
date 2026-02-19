@@ -147,6 +147,13 @@ deploy_service "orchestrator${SERVICE_SUFFIX}" "agents/orchestrator/Dockerfile" 
 
 ORCHESTRATOR_URL=$(gcloud run services describe "orchestrator${SERVICE_SUFFIX}" --region $REGION --format='value(status.url)')
 
+GOOGLE_CLOUD_PROJECT_NUMBER=$(gcloud projects describe "$(gcloud config get-value project)" --format="value(projectNumber)")
+
+gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
+--member="serviceAccount:$GOOGLE_CLOUD_PROJECT_NUMBER-compute@developer.gserviceaccount.com" \
+--role='roles/modelarmor.user' \
+--condition=None
+
 # Deploy Course Creator (Frontend)
 deploy_service "course-creator${SERVICE_SUFFIX}" "app/Dockerfile" \
   --project $GOOGLE_CLOUD_PROJECT \
