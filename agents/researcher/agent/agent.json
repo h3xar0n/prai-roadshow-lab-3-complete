@@ -1,0 +1,55 @@
+{
+  "additionalInterfaces": null,
+  "capabilities": {
+    "extensions": null,
+    "pushNotifications": null,
+    "stateTransitionHistory": null,
+    "streaming": true
+  },
+  "defaultInputModes": [
+    "text/plain"
+  ],
+  "defaultOutputModes": [
+    "text/plain"
+  ],
+  "description": "Gathers information on a topic using Google Search.",
+  "documentationUrl": null,
+  "iconUrl": null,
+  "name": "researcher",
+  "preferredTransport": "JSONRPC",
+  "protocolVersion": "0.3.0",
+  "provider": null,
+  "security": null,
+  "securitySchemes": null,
+  "signatures": null,
+  "skills": [
+    {
+      "description": "Gathers information on a topic using Google Search. \n    I am an expert researcher. my goal is to find comprehensive and accurate information on the user's topic.\n    Use the `google_search` tool to find relevant information.\n    Summarize my findings clearly.\n    If I receive feedback that my research is insufficient, use the feedback to refine my next search.\n    ",
+      "examples": null,
+      "id": "researcher",
+      "inputModes": null,
+      "name": "model",
+      "outputModes": null,
+      "security": null,
+      "tags": [
+        "llm"
+      ]
+    },
+    {
+      "description": "google_search",
+      "examples": null,
+      "id": "researcher-google_search",
+      "inputModes": null,
+      "name": "google_search",
+      "outputModes": null,
+      "security": null,
+      "tags": [
+        "llm",
+        "tools"
+      ]
+    }
+  ],
+  "supportsAuthenticatedExtendedCard": false,
+  "url": "http://127.0.0.1/a2a/agent",
+  "version": "0.0.1"
+}

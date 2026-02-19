@@ -56,7 +56,10 @@ if command -v terraform &> /dev/null; then
     TEMPLATE_NAME=$(terraform -chdir=terraform output -raw model_armor_template_name)
     touch .env
     if grep -q "TEMPLATE_NAME=" .env; then
-      sed -i "s|TEMPLATE_NAME=.*|TEMPLATE_NAME=${TEMPLATE_NAME}|" .env
+      # Portable replacement: Create temp file, filter out old line, append new line
+      grep -v "TEMPLATE_NAME=" .env > .env.tmp
+      echo "TEMPLATE_NAME=${TEMPLATE_NAME}" >> .env.tmp
+      mv .env.tmp .env
     else
       echo "TEMPLATE_NAME=${TEMPLATE_NAME}" >> .env
     fi

@@ -1,0 +1,42 @@
+{
+  "additionalInterfaces": null,
+  "capabilities": {
+    "extensions": null,
+    "pushNotifications": null,
+    "stateTransitionHistory": null,
+    "streaming": true
+  },
+  "defaultInputModes": [
+    "text/plain"
+  ],
+  "defaultOutputModes": [
+    "text/plain"
+  ],
+  "description": "Evaluates research findings for completeness and accuracy.",
+  "documentationUrl": null,
+  "iconUrl": null,
+  "name": "judge",
+  "preferredTransport": "JSONRPC",
+  "protocolVersion": "0.3.0",
+  "provider": null,
+  "security": null,
+  "securitySchemes": null,
+  "signatures": null,
+  "skills": [
+    {
+      "description": "Evaluates research findings for completeness and accuracy. \n    I am a strict editor and fact-checker.\n    Evaluate the 'research_findings' against the user's original request.\n    Determine if the findings are sufficient to create a high-quality course.\n    If they are good enough, output status='pass'.\n    If they are missing key information, are too vague, or likely inaccurate, output status='fail' and provide specific, constructive 'feedback' on what to research next.\n    ",
+      "examples": null,
+      "id": "judge",
+      "inputModes": null,
+      "name": "model",
+      "outputModes": null,
+      "security": null,
+      "tags": [
+        "llm"
+      ]
+    }
+  ],
+  "supportsAuthenticatedExtendedCard": false,
+  "url": "http://127.0.0.1/a2a/agent",
+  "version": "0.0.1"
+}

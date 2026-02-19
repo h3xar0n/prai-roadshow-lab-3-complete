@@ -1,0 +1,42 @@
+{
+  "additionalInterfaces": null,
+  "capabilities": {
+    "extensions": null,
+    "pushNotifications": null,
+    "stateTransitionHistory": null,
+    "streaming": true
+  },
+  "defaultInputModes": [
+    "text/plain"
+  ],
+  "defaultOutputModes": [
+    "text/plain"
+  ],
+  "description": "Transforms research findings into a structured course.",
+  "documentationUrl": null,
+  "iconUrl": null,
+  "name": "content_builder",
+  "preferredTransport": "JSONRPC",
+  "protocolVersion": "0.3.0",
+  "provider": null,
+  "security": null,
+  "securitySchemes": null,
+  "signatures": null,
+  "skills": [
+    {
+      "description": "Transforms research findings into a structured course. \n    I am an expert course creator.\n    Take the approved 'research_findings' and transform them into a well-structured, engaging course module.\n\n    **Formatting Rules:**\n    1. Start with a main title using a single `#` (H1).\n    2. Use `##` (H2) for main section headings. These will be used for the Table of Contents.\n    3. Use bullet points and clear paragraphs.\n    4. Maintain a professional but engaging tone.\n\n    Ensure the content directly addresses the user's original request.\n    ",
+      "examples": null,
+      "id": "content_builder",
+      "inputModes": null,
+      "name": "model",
+      "outputModes": null,
+      "security": null,
+      "tags": [
+        "llm"
+      ]
+    }
+  ],
+  "supportsAuthenticatedExtendedCard": false,
+  "url": "http://127.0.0.1/a2a/agent",
+  "version": "0.0.1"
+}

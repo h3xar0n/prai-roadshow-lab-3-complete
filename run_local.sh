@@ -26,8 +26,7 @@ if [ -f .env ]; then
     source .env
     set +a
 else
-    echo "Error: .env file not found. Please go back to the previous steps and be sure to add the project and template information."
-    exit 1
+    echo "Warning: .env file not found. Attempting to use active gcloud configuration and defaults."
 fi
 
 # Set common environment variables for local development
@@ -59,6 +58,26 @@ fi
 if [[ -z "$TEMPLATE_NAME" ]]; then
     TEMPLATE_NAME="projects/$GOOGLE_CLOUD_PROJECT/locations/$GOOGLE_CLOUD_LOCATION/templates/course-creator-security-policy"
     echo "TEMPLATE_NAME not set in .env. Using default: $TEMPLATE_NAME"
+fi
+
+# Fallback: Try to copy from starter project if .env is missing
+if [[ ! -f .env ]]; then
+    STARTER_ENV="../prai-roadshow-lab-3-starter/.env"
+    if [ -f "$STARTER_ENV" ]; then
+        echo "Attempting to copy .env from starter project ($STARTER_ENV)..."
+        cp "$STARTER_ENV" .env
+        echo "Reloading .env..."
+        set -a
+        source .env
+        set +a
+    fi
+fi
+
+# Final validation
+if [[ -z "$TEMPLATE_NAME" || "$TEMPLATE_NAME" == "projects//locations/us-central1/templates/course-creator-security-policy" ]]; then
+     echo "Error: Could not determine TEMPLATE_NAME and GOOGLE_CLOUD_PROJECT is likely unset."
+     echo "Please run 'gcloud config set project <your-project-id>' or create a .env file with TEMPLATE_NAME set."
+     exit 1
 fi
 export GOOGLE_GENAI_USE_VERTEXAI="True" # Use Gemini API locally
 export GOOGLE_API_KEY="<your-key-here>" # Use if not using Vertex AI
