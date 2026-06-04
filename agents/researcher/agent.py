@@ -2,7 +2,7 @@ from google.adk.agents import Agent
 from google.adk.tools.google_search_tool import google_search
 
 
-MODEL = "gemini-2.5-pro"
+MODEL = "gemini-3.1-pro-preview"
 
 # --- Researcher Agent ---
 researcher = Agent(
@@ -19,4 +19,3 @@ researcher = Agent(
 )
 
 root_agent = researcher
-

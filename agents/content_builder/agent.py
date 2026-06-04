@@ -1,7 +1,7 @@
 from google.adk.agents import Agent
 
 
-MODEL = "gemini-2.5-pro"
+MODEL = "gemini-3.1-pro-preview"
 
 # --- Content Builder Agent ---
 content_builder = Agent(
