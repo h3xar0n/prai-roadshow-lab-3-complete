@@ -4,18 +4,20 @@ from google.adk.apps.app import App
 from pydantic import BaseModel, Field
 
 
-MODEL = "gemini-2.5-pro"
+MODEL = "gemini-3.1-pro-preview"
+
 
 # --- Data Models ---
 class JudgeFeedback(BaseModel):
-
     """Structured feedback from the Judge agent."""
+
     status: Literal["pass", "fail"] = Field(
         description="Whether the research is sufficient ('pass') or needs more work ('fail')."
     )
     feedback: str = Field(
         description="Detailed feedback on what is missing or needs clarification if status is 'fail'. If 'pass', a brief confirmation."
     )
+
 
 # --- Judge Agent ---
 judge = Agent(
